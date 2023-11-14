@@ -2,6 +2,7 @@
 
 A Python script that collects Twitter posts and user data related to Zenon marketing campaigns.  
 All data is stored in a Postgres/Supabase database, including campaign data and post scoring values.
+
 ---
 
 ### Campaigns
@@ -11,6 +12,7 @@ Each post is given a score based on various Twitter metrics, especially native i
 
 The top users at the end of a campaign are awarded a prize.  
 The other users are entered in a raffle based on their post scores. Higher scores have greater chance of winning.
+
 ---
 
 ### Setup
