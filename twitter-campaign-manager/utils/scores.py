@@ -1,14 +1,28 @@
-from database.queries.get_queries import get_all_values, get_spam_debuff, get_spammer_ids, get_profile_urls
+from database.queries.get_queries import get_all_values, get_spam_debuff, get_spammer_ids, get_profile_urls, \
+    get_top_posts
 from database.tables import Table
 from utils.campaign import get_active_campaign
 from utils.misc import get_account_age, get_tags
 
 
-def get_score(post_value, multiplier, max_score):
-    if post_value * multiplier > max_score:
-        return 1 + max_score
+def get_score(post_value, threshold, multiplier, max_score):
+    base_score = 1.0
+    if post_value >= threshold:
+        if post_value * multiplier > max_score:
+            return base_score + max_score
+        else:
+            return base_score + (post_value * multiplier)
     else:
-        return 1 + (post_value * multiplier)
+        return base_score
+
+
+'''
+Scoring rules
+- text < post_length_criteria ==> score 0
+- impression_count == 0 ==> score 0
+- else:
+    use a base_score of 0.5 for each metric (7 in total)
+'''
 
 
 def calculate_post_scores(posts, weights):
@@ -17,38 +31,25 @@ def calculate_post_scores(posts, weights):
     post_length_criteria = campaign['post_length_criteria']
     for post in posts:
         score = 0
-        met_post_length_criteria = False
-        if len(post['text']) >= post_length_criteria:
-            met_post_length_criteria = True
+        if post['public_metrics']['impression_count'] != 0 and len(post['text']) >= post_length_criteria:
+            for w in weights:
+                if 'post_' not in w['metric']:
+                    continue
 
-        for w in weights:
-            if 'post_' not in w['metric']:
-                continue
+                metric = w['metric'][w['metric'].find('_') + 1:]
+                threshold = w['threshold']
+                multiplier = w['multiplier']
+                max_score = w['max']
 
-            metric = w['metric'][w['metric'].find('_') + 1:]
-            threshold = w['threshold']
-            multiplier = w['multiplier']
-            max_score = w['max']
-
-            if metric == 'impression_count':
-                if (post['public_metrics'][metric] < threshold and not met_post_length_criteria) or \
-                        post['public_metrics'][metric] == 0:
-                    score = 0
-                    break
-                score += get_score(post['public_metrics'][metric], multiplier, max_score)
-            elif metric == 'links':
-                if 'urls' in post and len(post['urls']) >= threshold:
-                    score += get_score(len(post['urls']), multiplier, max_score)
-            elif metric == 'link_clicks':
-                if 'urls' in post:
-                    for link in post['urls']:
-                        if int(link['clicks']) >= threshold:
-                            score += get_score(link['clicks'], multiplier, max_score)
-            else:
-                if post['public_metrics'][metric] >= threshold:
-                    score += get_score(post['public_metrics'][metric], multiplier, max_score)
+                if metric == 'links':
+                    if 'urls' in post:
+                        score += get_score(len(post['urls']), threshold, multiplier, max_score)
+                elif metric == 'link_clicks':
+                    if 'urls' in post:
+                        for link in post['urls']:
+                            score += get_score(int(link['clicks']), threshold, multiplier, max_score)
                 else:
-                    score += 0.5
+                    score += get_score(post['public_metrics'][metric], threshold, multiplier, max_score)
 
         post['score'] = score
         result.append(post)
@@ -128,16 +129,15 @@ def calculate_user_multipliers(users, weights):
 
 
 def calculate_user_scores(users):
-    posts = get_all_values(Table.POSTS)
     spam = get_spam_debuff()
     spammers = get_spammer_ids()
 
     result = []
     for user in users:
         score = 0
+        posts = get_top_posts(user['id'])
         for post in posts:
-            if post['author_id'] == user['id']:
-                score += user['multiplier'] * post['score']
+            score += user['multiplier'] * post['score']
 
         if int(user['id']) in spammers:
             score *= spam

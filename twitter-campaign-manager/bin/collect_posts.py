@@ -12,12 +12,21 @@ from twitter.queries import get_recent_posts, Limits
 from utils.scores import calculate_post_scores
 
 
+def filter_retweets(posts):
+    result = []
+    for p in posts:
+        if p['text'][0:2] != 'RT':
+            result.append(p)
+    return result
+
+
 def update_db(twitter_response):
     posts = twitter_response
     users = twitter_response['includes']['users']
 
     weights = get_all_values(Table.WEIGHTS)
-    posts = calculate_post_scores(posts['data'], weights)
+    posts = filter_retweets(posts['data'])
+    posts = calculate_post_scores(posts, weights)
     insert_posts(posts)
     insert_users(users)
 

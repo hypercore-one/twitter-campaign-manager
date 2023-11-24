@@ -1,6 +1,9 @@
 from bin.collect_posts import collect_new_posts
 from bin.update_data import update_data, DataType
+from database.queries.get_queries import get_winners, get_prizes
 from database.queries.update_queries import set_total_score, update_campaign_status, archive_posts, archive_users
+from telegram.api import post_to_channel
+from telegram.posts import campaign_end
 from utils.campaign import get_active_campaign, is_campaign_over, activate_next_campaign
 from utils.raffle import calculate_raffle_winner
 
@@ -22,5 +25,9 @@ if __name__ == '__main__':
 
         archive_posts(campaign['id'])
         archive_users(campaign['id'])
+
+        winners = get_winners(campaign['id'])
+        prizes = get_prizes(campaign['id'])
+        post_to_channel(campaign_end(campaign['id'], winners, prizes))
 
         activate_next_campaign()

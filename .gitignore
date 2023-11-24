@@ -131,6 +131,7 @@ dmypy.json
 
 # Ignore config file
 twitter-campaign-manager/config.yml
+twitter-campaign-manager/config.dev.yml
 
 # Ignore logs
 logs/

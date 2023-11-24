@@ -67,6 +67,12 @@ def get_all_scores_current_campaign():
             Supabase.client.table(Table.USERS).select("score").execute())))
 
 
+def get_top_posts(user_id):
+    return unpack(json.loads(APIResponse.model_dump_json(
+        Supabase.client.table(Table.POSTS).select("author_id,score").eq("author_id", user_id).
+        order("score.desc").limit(21).execute())))
+
+
 def get_raffle_data(campaign):
     response = json.loads(APIResponse.model_dump_json(
         Supabase.client.table(Table.USERS).select("id,score").gt("score", 0).order("score.desc").execute()))
@@ -104,3 +110,25 @@ def get_spam_debuff():
     response = json.loads(APIResponse.model_dump_json(
         Supabase.client.table(Table.WEIGHTS).select("multiplier").eq('metric', 'spam_debuff').execute()))
     return response['data'][0]['multiplier']
+
+
+def get_winners(campaign_id):
+    raffle_eligibility = unpack(json.loads(APIResponse.model_dump_json(
+        Supabase.client.table(Table.CAMPAIGNS).select('raffle_eligibility').eq('id', campaign_id).limit(
+            1).execute())))[0]['raffle_eligibility']
+
+    top_winners = unpack(json.loads(APIResponse.model_dump_json(
+        Supabase.client.table(Table.ALL_USERS).select('username,score').eq('campaign_id', campaign_id).order(
+            'score.desc').limit(
+            int(raffle_eligibility)).execute())))
+
+    return top_winners + [{'raffle_winner': unpack(json.loads(APIResponse.model_dump_json(
+        Supabase.client.table(Table.ALL_USERS).select('username,score').eq('campaign_id', campaign_id).eq(
+            'raffle_winner',
+            True).limit(1).execute())))}]
+
+
+def get_prizes(campaign_id):
+    return unpack(json.loads(APIResponse.model_dump_json(
+        Supabase.client.table(Table.CAMPAIGNS).select('prizes').eq('id', campaign_id).limit(
+            1).execute())))[0]['prizes']

@@ -4,7 +4,7 @@ import os
 
 def init_logger(name):
     path = 'logs'
-    if os.path.split(os.getcwd())[-1] != 'zenon_marketing':
+    if os.path.split(os.getcwd())[-1] != 'twitter-campaign-manager':
         path = os.path.join('..', path)
 
     if not os.path.exists(path):

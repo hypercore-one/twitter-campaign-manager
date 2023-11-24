@@ -15,3 +15,5 @@ class Config:
     SUPABASE_URL = config_data['SUPABASE_URL']
     SUPABASE_SERVICE_ROLE_KEY = config_data['SUPABASE_SERVICE_ROLE_KEY']
     SHLINK_API_KEY = config_data['SHLINK_API_KEY']
+    TG_BOT_TOKEN = config_data['TG_BOT_TOKEN']
+    ANNOUNCEMENT_CHANNEL_ID = config_data['ANNOUNCEMENT_CHANNEL_ID']
