@@ -24,5 +24,5 @@ The other users are entered in a raffle based on their post scores. Higher score
 4. pip install -r requirements.txt
 5. cp example.config.yml config.yml
    - add the keys to the config file
-6. python main.py
+6. python twitter-campaign-manager.py
 ```
