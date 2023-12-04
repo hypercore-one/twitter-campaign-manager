@@ -6,7 +6,7 @@ from utils.misc import get_account_age, get_tags
 
 
 def get_score(post_value, threshold, multiplier, max_score):
-    base_score = 1.0
+    base_score = 0.5
     if post_value >= threshold:
         if post_value * multiplier > max_score:
             return base_score + max_score

@@ -70,7 +70,7 @@ def get_all_scores_current_campaign():
 def get_top_posts(user_id):
     return unpack(json.loads(APIResponse.model_dump_json(
         Supabase.client.table(Table.POSTS).select("author_id,score").eq("author_id", user_id).
-        order("score.desc").limit(21).execute())))
+        order("score.desc").limit(14).execute())))
 
 
 def get_raffle_data(campaign):
